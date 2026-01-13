@@ -83,3 +83,8 @@ jobs:
         run: |
           docker rm -f healthcheck || true
           docker run -d -p 8000:8000 --name healthcheck healthcheck:ci
+
+      - name: Verify service health
+        run: |
+          sleep 5
+          curl -f http://localhost:8000/health
