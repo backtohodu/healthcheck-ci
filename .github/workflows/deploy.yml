@@ -76,17 +76,18 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Build image
-        run: docker build -t healthcheck:${{ github.sha }} .
+      - name: Build image (same commit SH4)
+        run: |
+          docker build -t healthcheck:${{ github.event.workflow_run.head_sha }} .
 
       - name: Deploy container
         run: |
           docker rm -f healthcheck || true
           docker run -d -p 8000:8000 \
           --name healthcheck \
-          healthcheck:${{ github.sha }}
+          healthcheck:${{ github.event.workflow_run.head_sha }}
 
-      - name: Verify service health
+      - name: Post-deploy health check
         run: |
           sleep 5
           curl -f http://localhost:8000/health
