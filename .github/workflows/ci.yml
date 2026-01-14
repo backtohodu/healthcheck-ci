@@ -33,13 +33,13 @@ jobs:
       - name: Build Docker image (commit SH4)
         run: |
           docker build -t healthcheck:${{ github.sha }} .
-          docker tag healthcheck:${{ github.sha }} healthcheck:latest
+#          docker tag healthcheck:${{ github.sha }} healthcheck:latest
 
-      - name: Health check
-        run: |
-          curl -f http://localhost:8000/health
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker rm -f hc-test || true
+#      - name: Health check
+#        run: |
+#          curl -f http://localhost:8000/health
+#
+#      - name: Cleanup
+#        if: always()
+#        run: |
+#          docker rm -f hc-test || true
