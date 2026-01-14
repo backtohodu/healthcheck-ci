@@ -86,7 +86,7 @@ jobs:
 
       - name: Pull image
         run: |
-          docker pull ghcr.io/$${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
+          docker pull ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
 
       - name: Deploy container
         run: |
