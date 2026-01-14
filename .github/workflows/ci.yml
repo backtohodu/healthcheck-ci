@@ -30,11 +30,17 @@ jobs:
           flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 app --count --exit-zero --max-complexity=10 --statistics
 
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Build Docker image (commit SH4)
         run: |
-          docker build -t healthcheck:${{ github.sha }} .
+          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
 #          docker tag healthcheck:${{ github.sha }} healthcheck:latest
-
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
 #      - name: Health check
 #        run: |
 #          curl -f http://localhost:8000/health
