@@ -59,7 +59,7 @@
 #            --name healthcheck \
 #            -p 8000:8000 \
 #            healthcheck:latest
-name: CD
+name: CD - Deploy to VM
 
 on:
   workflow_run:
@@ -73,27 +73,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - name: SSH Deploy to VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 192.168.179.129
+          username: stack
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            docker rm -f healthcheck || true
+            docker run -d -p 8000:8000 --name healthcheck healcheck-latest
+#      - name: Checkout source
+#        uses: actions/checkout@v4
 
 #      - name: Build image (same commit SH4)
 #        run: |
 #          docker build -t healthcheck:${{ github.event.workflow_run.head_sha }} .
 
-      - name: Login to GHCR
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+#      - name: Login to GHCR
+#        run: |
+#          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+#
+#      - name: Pull image
+#        run: |
+#          docker pull ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
 
-      - name: Pull image
-        run: |
-          docker pull ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.9
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy container
+      - name: Deploy to VM
         run: |
-          docker rm -f healthcheck || true
-          docker run -d -p 8000:8000 \
-          --name healthcheck \
-          ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            docker rm -f healthcheck || true
+            docker pull ghcr.io/backtohodu/healthcheck:lastest || true
+            docker run -d -p 8000:8000 --name healthcheck healthcheck:lastest
+          EOF
+
+#      - name: Deploy container
+#        run: |
+#          docker rm -f healthcheck || true
+#          docker run -d -p 8000:8000 \
+#          --name healthcheck \
+#          ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
 
 #      - name: Post-deploy health check
 #        run: |
